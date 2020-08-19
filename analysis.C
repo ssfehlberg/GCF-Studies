@@ -4,7 +4,7 @@ void analysis(){
   gStyle->SetOptStat(0);
 
   //Load in the histogram file
-  TFile *f=new TFile("hists_GCF_CCQE_with_weight.root");
+  TFile *f=new TFile("hists_GCF_CCQE.root");
 
   const int num_cuts = 5;
   const char* cuts[num_cuts] = {"_b4_cuts","_pmis_cut","_muon_cut","_rec_cut","_lead_cut"};
@@ -29,22 +29,126 @@ void analysis(){
   TLegend* leg_muon[num_cuts][num_var];
   TH1D* h_opening_angle_proton[num_cuts];
   TH1D* h_opening_angle_mu_leading[num_cuts];
+  TH1D* h_delta_PT[num_cuts];
+  TH1D* h_delta_alphaT[num_cuts];
+  TH1D* h_delta_phiT[num_cuts];
   TCanvas* canv0[num_cuts];
   TCanvas* canv1[num_cuts];
-
+  TCanvas* canv2[num_cuts];
+  
   //Grab the histograms
+  //////////////////////
+  TH1D* h_Enu = (TH1D*)f->Get("h_Enu");
+  TH1D* h_pmissT = (TH1D*)f->Get("h_pmissT");
+  TH1D* h_pMiss = (TH1D*)f->Get("h_pMiss");
+  TH1D* h_cos_gamma_lab = (TH1D*)f->Get("h_cos_gamma_lab");
+  TH1D* h_cos_gamma_cm = (TH1D*)f->Get("h_cos_gamma_cm_raw");
+  TH1D* h_cos_gamma_cm_with_cut = (TH1D*)f->Get("h_cos_gamma_cm_with_cut");
+  TH2D* h_2D_p1vp2 = (TH2D*)f->Get("h_2D_p1vp2");
+  TH2D* h_2D_cos_gamma_cm_vs_p_missT = (TH2D*)f->Get("h_2D_cos_gamma_cm_v_p_missT"); 
+  
   for(int i = 0; i < num_cuts; i++){
     h_opening_angle_proton[i] = (TH1D*)f->Get(Form("h_opening_angle_protons%s",cuts[i]));
     h_opening_angle_mu_leading[i] = (TH1D*)f->Get(Form("h_opening_angle_mu_leading%s",cuts[i]));
-
+    h_delta_PT[i] = (TH1D*)f->Get(Form("h_delta_PT%s",cuts[i]));
+    h_delta_alphaT[i] = (TH1D*)f->Get(Form("h_delta_alphaT%s",cuts[i]));
+    h_delta_phiT[i] = (TH1D*)f->Get(Form("h_delta_phiT%s",cuts[i]));
+    
     for(int j = 0; j < num_var; j++){
       h_muon[i][j] = (TH1D*)f->Get(Form("h_muon%s%s",cuts[i],var[j]));
       h_recoil[i][j] = (TH1D*)f->Get(Form("h_recoil%s%s",cuts[i],var[j]));
       h_leading[i][j] = (TH1D*)f->Get(Form("h_leading%s%s",cuts[i],var[j]));    
     }
   }
-  
+
   //Plotting Time!
+  ////////////////
+  TCanvas* fig0 = new TCanvas("fig0","fig0",3400,800);
+  fig0->Divide(3,1);
+  fig0->cd(1);
+  h_pmissT->Draw("e1");
+  h_pmissT->SetLineColor(kRed-7);
+  h_pmissT->SetLineWidth(4);
+  h_pmissT->SetTitle("Missing Transverse Momentum");
+  h_pmissT->GetXaxis()->SetTitle("P_{miss}^{T} (GeV/c)");
+  h_pmissT->GetYaxis()->SetTitle("Counts");
+  //h_pmissT->SetMaximum();
+  t->DrawLatex(0.77,0.88,"#scale[0.6]{MicroBooNE In-Progress}");
+  fig0->cd(2);
+  h_Enu->Draw("E1");
+  h_Enu->SetLineColor(kRed-7);
+  h_Enu->SetLineWidth(4);
+  h_Enu->SetTitle("Energy of the Neutrino");
+  h_Enu->GetXaxis()->SetTitle("E_{#nu} (GeV)");
+  h_Enu->GetYaxis()->SetTitle("Counts");
+  //h_Enu->SetMaximum();
+  t->DrawLatex(0.77,0.88,"#scale[0.6]{MicroBooNE In-Progress}");
+  fig0->cd(3);
+  h_pMiss->Draw("E1");
+  h_pMiss->SetLineColor(kRed-7);
+  h_pMiss->SetLineWidth(4);
+  h_pMiss->SetTitle("Struck Neutron Momentum");
+  h_pMiss->GetXaxis()->SetTitle("Momentum of Struck Neutron (GeV/c)");
+  h_pMiss->GetYaxis()->SetTitle("Counts");
+  //h_pMiss->SetMaximum();
+  t->DrawLatex(0.77,0.88,"#scale[0.6]{MicroBooNE In-Progress}");
+  fig0->cd();
+  fig0->Print("images/raquel_24673.png");
+  fig0->Print("images/raquel_24673.pdf");
+
+  TCanvas* fig1 = new TCanvas("fig1","fig1",2000,1500);
+  fig1->cd();
+  h_2D_p1vp2->Draw("colz");
+  h_2D_p1vp2->GetXaxis()->SetTitle("P_{Recoil} (GeV/c)");
+  h_2D_p1vp2->GetYaxis()->SetTitle("P_{Leading} (GeV/c)");
+  h_2D_p1vp2->SetTitle("");
+  fig1->Print("images/raquel_Fig1.png");
+  fig1->Print("images/raquel_Fig1.pdf");
+
+  TCanvas* fig2 = new TCanvas("fig2","fig2",2000,1500);
+  fig2->cd();
+  h_cos_gamma_lab->Draw("E1");
+  h_cos_gamma_lab->GetXaxis()->SetTitle("cos(#gamma_{Lab})");
+  h_cos_gamma_lab->GetYaxis()->SetTitle("Counts");
+  h_cos_gamma_lab->SetTitle("cos(#gamma_{Lab})");
+  //h_cos_gamma_lab->SetMaximum();
+  fig2->Print("images/raquel_Fig2.png");
+  fig2->Print("images/raquel_Fig2.pdf");
+
+  TCanvas* fig3 = new TCanvas("fig3","fig3",2000,1500);
+  fig3->cd();
+  h_2D_cos_gamma_cm_vs_p_missT->Draw("colz");
+  h_2D_cos_gamma_cm_vs_p_missT->GetXaxis()->SetTitle("P_{miss}^{T} (GeV/c)");
+  h_2D_cos_gamma_cm_vs_p_missT->GetYaxis()->SetTitle("cos(#gamma_{COM})");
+  h_2D_cos_gamma_cm_vs_p_missT->SetTitle("");
+  TLine* a = new TLine(0.3,-1,0.3,1);
+  a->Draw("same");
+  a->SetLineColor(kRed);
+  a->SetLineWidth(4);
+  fig3->Print("images/raquel_Fig3.png");
+  fig3->Print("images/raquel_Fig3.pdf");
+
+  TCanvas* sanity = new TCanvas("sanity","sanity",2000,1500);
+  sanity->cd();
+  h_cos_gamma_cm->Draw("e1");
+  h_cos_gamma_cm->GetXaxis()->SetTitle("cos(#gamma_{COM})");
+  h_cos_gamma_cm->GetYaxis()->SetTitle("Counts");
+  h_cos_gamma_cm->SetTitle("cos(#gamma_{COM}): No Cut");
+  h_cos_gamma_cm->SetMaximum(0.023);
+  sanity->Print("images/raquel_cosgamma_cm.png");
+  sanity->Print("images/raquel_cosgamma_cm.pdf");
+
+  TCanvas* fig4 = new TCanvas("fig4","fig4",2000,1500);
+  fig4->cd();
+  h_cos_gamma_cm_with_cut->Draw("e1");
+  h_cos_gamma_cm_with_cut->GetXaxis()->SetTitle("cos(#gamma_{COM})");
+  h_cos_gamma_cm_with_cut->GetYaxis()->SetTitle("Counts");
+  h_cos_gamma_cm_with_cut->SetMaximum(0.023);                                                                                                                                                                                                                                                    
+  h_cos_gamma_cm_with_cut->SetTitle("cos(#gamma_{COM}) with Cut on P_{miss}^{T}");
+  fig4->Print("images/raquel_Fig4.png");
+  fig4->Print("images/raquel_Fig4.pdf");
+  
+
   for(int i = 0; i < num_cuts; i++){
 
     canv0[i] = new TCanvas(Form("c0%s",cuts[i]),Form("c0%s",cuts[i]),2000,1500);
@@ -75,6 +179,50 @@ void analysis(){
     canv1[i]->Print(Form("images/%s_opening_angle_mu_leading.png",cuts[i]));
     canv1[i]->Print(Form("images/%s_opening_angle_mu_leading.pdf",cuts[i]));
 
+    canv2[i] = new TCanvas(Form("c2%s",cuts[i]),Form("c2%s",cuts[i]),3400,800);
+    canv2[i]->Divide(3,1);
+    canv2[i]->cd(1);
+    h_delta_PT[i]->Draw("hist");
+    h_delta_PT[i]->SetLineColor(kBlue-7);
+    h_delta_PT[i]->GetXaxis()->SetTitle("#delta P_{T} (Gev/c)");
+    h_delta_PT[i]->GetYaxis()->SetTitle("Counts"); //No. Events
+    h_delta_PT[i]->GetXaxis()->SetTitleSize(0.04);
+    h_delta_PT[i]->GetYaxis()->SetTitleSize(0.04);
+    h_delta_PT[i]->SetMaximum(0.05);
+    h_delta_PT[i]->SetTitle("");
+    TLine* a1 = new TLine(0.259,0,0.259,0.05);
+    a1->Draw("same");
+    a1->SetLineColor(kBlack);
+    a1->SetLineWidth(3);
+    t->DrawLatex(0.77,0.88,"#scale[0.6]{MicroBooNE In-Progress}");
+
+    canv2[i]->cd(2);
+    h_delta_alphaT[i]->Draw("hist");
+    h_delta_alphaT[i]->SetLineColor(kRed-7);
+    h_delta_alphaT[i]->GetXaxis()->SetTitle("cos(#delta #alpha_{T})");
+    h_delta_alphaT[i]->GetYaxis()->SetTitle("Counts"); //No. Events
+    h_delta_alphaT[i]->GetXaxis()->SetTitleSize(0.04);
+    h_delta_alphaT[i]->GetYaxis()->SetTitleSize(0.04);
+    h_delta_alphaT[i]->SetMaximum(0.04);
+    h_delta_alphaT[i]->SetTitle("");
+    t->DrawLatex(0.77,0.88,"#scale[0.6]{MicroBooNE In-Progress}");
+
+    canv2[i]->cd(3);
+    h_delta_phiT[i]->Draw("hist");
+    h_delta_phiT[i]->SetLineColor(kGreen+3);
+    h_delta_phiT[i]->GetXaxis()->SetTitle("#delta #phi_{T} (Radians)");
+    h_delta_phiT[i]->GetYaxis()->SetTitle("Counts"); //No. Events
+    h_delta_phiT[i]->GetXaxis()->SetTitleSize(0.04); //0.04
+    h_delta_phiT[i]->GetYaxis()->SetTitleSize(0.04);
+    h_delta_phiT[i]->SetMaximum(0.04);
+    h_delta_phiT[i]->SetTitle("");
+    t->DrawLatex(0.77,0.88,"#scale[0.6]{MicroBooNE In-Progress}");
+
+    canv2[i]->cd();
+    t->DrawLatex(0.5,0.96,Form("Single Transverse Variables: %s",titles_cuts[i]));
+    canv2[i]->Print(Form("images/stv%s.png",cuts[i]));
+    canv2[i]->Print(Form("images/stv%s.pdf",cuts[i]));
+    
     for(int j = 0; j < num_var; j++){
       
       canv[i][j] = new TCanvas(Form("c%s%s",cuts[i],var[j]),Form("c%s%s",cuts[i],var[j]),2800,800);
